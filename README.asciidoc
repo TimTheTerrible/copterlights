@@ -38,8 +38,8 @@ The hardware consists of the Teensy and the ADXL225 connected together as implie
 As is also implied by the code, an output channel of the RC receiver is connected to the CONTROL_PIN.
 
 == Setup
-# Construct the device according to the schematic.
-# Find the calibration values using the method described at https://learn.adafruit.com/adafruit-analog-accelerometer-breakouts and enter them in the appropriate place in the code.
-# Configure your transmitter to assign a three-position switch to the output channel connected to CONTROL_PIN.
+* Construct the device according to the schematic.
+* Find the calibration values using the method described at https://learn.adafruit.com/adafruit-analog-accelerometer-breakouts and enter them in the appropriate place in the code.
+* Configure your transmitter to assign a three-position switch to the output channel connected to CONTROL_PIN.
 
 
