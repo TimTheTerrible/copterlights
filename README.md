@@ -8,5 +8,5 @@ As is also implied by the code, an output channel of the RC receiver is connecte
 
 Configure your transmitter to assign a three-position switch to the output channel connected to pin 2.
 When the switch is in the "0" (off) position, the LEDs will be dark.
-When the switch is in the "1" (on) position, the LEDs play the UFO light sequence.
+When the switch is in the "1" (on) position, the LEDs strobe.
 When the switch is in the "2" (auto) position, the LEDs play the apppropriate sequence based on the output of the accelerometer.

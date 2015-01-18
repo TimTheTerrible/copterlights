@@ -55,7 +55,7 @@ int zRawMax = 618;
 
 const int sampleSize = 10;
 
-// Utility Functions
+// LED Functions
 void setAll( int color ) {
   for ( int i=0; i < NUMPIXELS; i++ ){
     // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
@@ -104,6 +104,14 @@ void playDescend () {
   delay(250);
 }
 
+void playRedStrobe () {
+  setAll( dimWhite );
+  delay(500);
+  setAll(brtRed);
+  delay(50);
+}
+
+// Acellerometer Functions
 int ReadAxis(int axisPin)
 {
   long reading = 0;
@@ -179,7 +187,7 @@ void loop() {
     setAll(dark);
   }
   else if ( cmd > 1200 and cmd < 1600 ) {
-    setAll(dimWhite);
+    playRedStrobe();
   }
   else {
     // Read the accelerometer...
