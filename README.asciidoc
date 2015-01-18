@@ -6,7 +6,7 @@ This Arduino sketch implements automatic, motion-sensitive running lights for a 
 
 I built a DJI F550 and wanted some cool running lights for it. I found NeoPixels at Adafruit Industries. 
 
-I built the copter using the eight-channel Spektrum AR8000 that came with the transmitter. Because the DJI Naza-M v2 uses only seven channels, I decided to use the spare channel to control the running lights. While shopping for parts I found the Analog Devices ADXL335 accelerometer and though it would be cool to have the lights change based on how the copter was moving.
+I built the copter using an eight-channel Spektrum AR8000. Because the DJI Naza-M v2 uses only seven channels, I decided to use the spare channel to control the running  lights. While shopping for parts I found the Analog Devices ADXL335 accelerometer and though it would be cool to have the lights change based on how the copter was moving.
 
 I ended up building an Arduino-powered setup with the following features:
 

@@ -14,9 +14,6 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, LED_PIN, NEO_GRB + NEO_K
 #define MODE_DESCEND  3
 #define NUM_MODES     4
 
-// Global 
-int ledMode;
-
 // Define some easy-to-use colors...
 int dark = pixels.Color(0,0,0);
 
@@ -46,7 +43,7 @@ const int yInput = A1;
 const int zInput = A2;
 
 // Calibration values
-// Find these by running the calibration code found at
+// Find these for your particular 335 by running the calibration code found at
 // https://learn.adafruit.com/adafruit-analog-accelerometer-breakouts
 int xRawMin = 407;
 int xRawMax = 609;
@@ -66,7 +63,11 @@ const int sampleSize = 10;
 #define CTRL_ON      1
 #define CTRL_AUTO    2
 
-// LED Functions
+/*
+  LED Functions
+*/
+  
+// Set all the lights to the given color
 void setAll( int color ) {
   for ( int i=0; i < NUMPIXELS; i++ ){
     // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
@@ -76,7 +77,7 @@ void setAll( int color ) {
   }
 }
 
-// Play normal aircraft running lights (whit in front, yellow behind, red to port and green to starboard)
+// Play normal aircraft running lights (white in front, yellow behind, red to port and green to starboard)
 void playDefault () {
   // set the light colors...
   pixels.setPixelColor(0, dimWhite);
@@ -94,8 +95,9 @@ void playDefault () {
   delay(50);
 }
 
+// Play a UFO-like effect of all dim white lights with one bright strobe going around
 void playHover () {
-  for ( int i=0; i < NUMPIXELS; i++ ){
+  for ( int i=0; i < NUMPIXELS; i++ ) {
     setAll( dimWhite );
     pixels.setPixelColor(i, brtWhite);
     pixels.show();
@@ -103,6 +105,7 @@ void playHover () {
   }
 }
 
+// Play all dim white lights that gradually brighten
 void playAscend () {
   for ( int i = 0; i < 255; i++ ) {
     setAll( pixels.Color(i,i,i));
@@ -110,6 +113,7 @@ void playAscend () {
   delay(250);
 }
 
+// Play all bright white lights that gradually dim
 void playDescend () {
   for ( int i = 255; i > 0; i-- ) {
     setAll( pixels.Color(i,i,i) );
@@ -117,6 +121,7 @@ void playDescend () {
   delay(250);
 }
 
+// Play all white with a brief, bright red strobe
 void playRedStrobe () {
   setAll( dimWhite );
   delay(500);
@@ -124,68 +129,12 @@ void playRedStrobe () {
   delay(50);
 }
 
-// Acellerometer Functions
-int ReadAxis(int axisPin)
-{
-  long reading = 0;
-  analogRead(axisPin);
-  delay(1);
-  for (int i = 0; i < sampleSize; i++)
-  {
-    reading += analogRead(axisPin);
-  }
-  return reading/sampleSize;
-}
-
-int readAccel() {
-  // Read the axes...
-  int xRaw = ReadAxis(xInput);
-  int yRaw = ReadAxis(yInput);
-  int zRaw = ReadAxis(zInput);
-  
-  // Convert raw values to 'milli-Gs"
-  long xScaled = map(xRaw, xRawMin, xRawMax, -1000, 1000);
-  long yScaled = map(yRaw, yRawMin, yRawMax, -1000, 1000);
-  long zScaled = map(zRaw, zRawMin, zRawMax, -1000, 1000);
-
-  // re-scale to fractional Gs
-  float xAccel = xScaled / 1000.0;
-  float yAccel = yScaled / 1000.0;
-  float zAccel = zScaled / 1000.0;
-
-  if ( xAccel < -0.2 or xAccel > 0.2 or yAccel < -0.2 or yAccel > 0.2 ) {
-    return MODE_DEFAULT;
-  }
-  else if ( zAccel > 0.99 ) {
-    return MODE_ASCEND;
-  }
-  else if ( zAccel < 0.85 ) {
-    return MODE_DESCEND;
-  }
-  else {
-    return MODE_HOVER;
-  }
-}    
-
-int readControl() { 
-  int ctrlPin = pulseIn(CONTROL_PIN, HIGH);
-
-  if ( ctrlPin < 1200 ) {
-    return CTRL_OFF;
-  }
-  else if ( ctrlPin > 1200 and ctrlPin < 1600 ) {
-    return CTRL_ON;
-  }
-  else {
-    return CTRL_AUTO;
-  }
-}
-
+// Read the accelerometer and play the appropriate pattern
 void playAuto() {
   // Read the accelerometer...
-  ledMode = readAccel();
+  int ledMode = readAccel();
   
-  // Run the appropriate pattern...
+  // RunPlay the appropriate pattern...
   switch ( ledMode ) {
     case MODE_DEFAULT:
       playDefault();
@@ -202,7 +151,79 @@ void playAuto() {
   }
 }
 
-// Main Program
+/*
+  Acellerometer Functions
+*/
+
+// Read an axis and return the sampled value
+int ReadAxis(int axisPin)
+{
+  long reading = 0;
+  analogRead(axisPin);
+  delay(1);
+  for (int i = 0; i < sampleSize; i++)
+  {
+    reading += analogRead(axisPin);
+    delay(1);
+  }
+  return reading/sampleSize;
+}
+
+// Read the accelerometer and return the flight mode
+int readAccel() {
+  // Read the axes...
+  int xRaw = ReadAxis(xInput);
+  int yRaw = ReadAxis(yInput);
+  int zRaw = ReadAxis(zInput);
+  
+  // Convert raw values to 'milli-Gs"
+  long xScaled = map(xRaw, xRawMin, xRawMax, -1000, 1000);
+  long yScaled = map(yRaw, yRawMin, yRawMax, -1000, 1000);
+  long zScaled = map(zRaw, zRawMin, zRawMax, -1000, 1000);
+
+  // re-scale to fractional Gs
+  float xAccel = xScaled / 1000.0;
+  float yAccel = yScaled / 1000.0;
+  float zAccel = zScaled / 1000.0;
+
+  // Check for lateral motion...
+  if ( xAccel < -0.2 or xAccel > 0.2 or yAccel < -0.2 or yAccel > 0.2 ) {
+    return MODE_DEFAULT;
+  }
+  // Check for upward motion..
+  else if ( zAccel > 0.99 ) {
+    return MODE_ASCEND;
+  }
+  // Check for downward motion...
+  else if ( zAccel < 0.85 ) {
+    return MODE_DESCEND;
+  }
+  // Must be sitting still, then...
+  else {
+    return MODE_HOVER;
+  }
+}    
+
+// Read the control pin and return the control mode
+int readControl() { 
+  int ctrlPin = pulseIn(CONTROL_PIN, HIGH);
+
+  if ( ctrlPin < 1200 ) {
+    return CTRL_OFF;
+  }
+  else if ( ctrlPin > 1200 and ctrlPin < 1600 ) {
+    return CTRL_ON;
+  }
+  else {
+    return CTRL_AUTO;
+  }
+}
+
+/*
+  Main Program
+*/
+
+// Set everything up
 void setup() {
   // Set the analog reference to external before calling analogRead()...
   analogReference(EXTERNAL);
@@ -215,7 +236,9 @@ void setup() {
   setAll( dimWhite );
 }
 
+// Do the main loop
 void loop() {
+  
   // Read the control pin...
   int ctrlPin = readControl();
 
