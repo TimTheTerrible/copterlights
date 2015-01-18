@@ -1,26 +1,28 @@
 #include <Adafruit_NeoPixel.h>
 
-#define PIN            6
-
+// Define the pin to which the LED serial line is attached...
+#define LED_PIN        6
+// Tell the pixel library how many pixels there are...
 #define NUMPIXELS      8
+// Set up the pixel library...
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-
+// Define the LED modes...
 #define MODE_DEFAULT  0
 #define MODE_HOVER    1
 #define MODE_ASCEND   2
 #define MODE_DESCEND  3
 #define NUM_MODES     4
 
-int mode;
-int mark;
+// Global 
+int ledMode;
 
 // Define some easy-to-use colors...
 int dark = pixels.Color(0,0,0);
 
 int dimWhite = pixels.Color(64,64,64);
 int medWhite = pixels.Color(128,128,128);
-int brtWhite = pixels.Color(196,196,196);
+int brtWhite = pixels.Color(255,255,255);
 
 int dimRed = pixels.Color(64,0,0);
 int medRed = pixels.Color(128,0,0);
@@ -36,14 +38,16 @@ int brtBlue = pixels.Color(0,0,255);
 
 int dimYellow = pixels.Color(48,32,0);
 int medYellow = pixels.Color(128,128,0);
-int brtYellow = pixels.Color(196,192,0);
+int brtYellow = pixels.Color(192,192,0);
 
-// Accelerometer Stuff
+// Accelerometer Inputs
 const int xInput = A0;
 const int yInput = A1;
 const int zInput = A2;
-const int buttonPin = 2;
 
+// Calibration values
+// Find these by running the calibration code found at
+// https://learn.adafruit.com/adafruit-analog-accelerometer-breakouts
 int xRawMin = 407;
 int xRawMax = 609;
 
@@ -55,28 +59,37 @@ int zRawMax = 618;
 
 const int sampleSize = 10;
 
+// Control Input
+#define CONTROL_PIN  2
+
+#define CTRL_OFF     0
+#define CTRL_ON      1
+#define CTRL_AUTO    2
+
 // LED Functions
 void setAll( int color ) {
   for ( int i=0; i < NUMPIXELS; i++ ){
     // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
     pixels.setPixelColor(i, color);    
-    pixels.show(); // This sends the updated pixel color to the hardware.
+    // This sends the updated pixel color to the hardware.
+    pixels.show();
   }
 }
 
+// Play normal aircraft running lights (whit in front, yellow behind, red to port and green to starboard)
 void playDefault () {
   // set the light colors...
   pixels.setPixelColor(0, dimWhite);
   pixels.setPixelColor(1, dimWhite);
-  pixels.setPixelColor(2, dimRed);
+  pixels.setPixelColor(2, dimGreen);
   pixels.setPixelColor(3, dimYellow);
   pixels.setPixelColor(4, dimYellow);
-  pixels.setPixelColor(5, dimGreen);
+  pixels.setPixelColor(5, dimRed);
   pixels.show();
   delay(2000);
   // blink the side lights...
-  pixels.setPixelColor(2, brtRed);
-  pixels.setPixelColor(5, brtGreen);
+  pixels.setPixelColor(2, brtGreen);
+  pixels.setPixelColor(5, brtRed);
   pixels.show();
   delay(50);
 }
@@ -124,10 +137,12 @@ int ReadAxis(int axisPin)
   return reading/sampleSize;
 }
 
-void readAccel() {
+int readAccel() {
+  // Read the axes...
   int xRaw = ReadAxis(xInput);
   int yRaw = ReadAxis(yInput);
   int zRaw = ReadAxis(zInput);
+  
   // Convert raw values to 'milli-Gs"
   long xScaled = map(xRaw, xRawMin, xRawMax, -1000, 1000);
   long yScaled = map(yRaw, yRawMin, yRawMax, -1000, 1000);
@@ -138,63 +153,40 @@ void readAccel() {
   float yAccel = yScaled / 1000.0;
   float zAccel = zScaled / 1000.0;
 
-  Serial.print("Accel ");
-  Serial.print(xAccel);
-  Serial.print("G, ");
-  Serial.print(yAccel);
-  Serial.print("G, ");
-  Serial.print(zAccel);
-  Serial.println("G");  
-  
   if ( xAccel < -0.2 or xAccel > 0.2 or yAccel < -0.2 or yAccel > 0.2 ) {
-    Serial.println("Setting mode to MODE_DEFAULT");  
-    mode = MODE_DEFAULT;
+    return MODE_DEFAULT;
   }
-  else if ( zAccel > 0.98 ) {
-    Serial.println("Setting mode to MODE_ASCEND");  
-    mode = MODE_ASCEND;
+  else if ( zAccel > 0.99 ) {
+    return MODE_ASCEND;
   }
   else if ( zAccel < 0.85 ) {
-    Serial.println("Setting mode to MODE_DESCEND");  
-    mode = MODE_DESCEND;
+    return MODE_DESCEND;
   }
   else {
-    Serial.println("Setting mode to MODE_HOVER");  
-    mode = MODE_HOVER;
+    return MODE_HOVER;
   }
 }    
 
-void setup() {
-  // set the analog reference to external before calling analogRead()...
-  analogReference(EXTERNAL);
-  
-  // Start the pixels on white...
-  pixels.begin();
-  setAll( dimWhite );
+int readControl() { 
+  int ctrlPin = pulseIn(CONTROL_PIN, HIGH);
 
-  // Set the starting mode to Hover...
-  mode = MODE_HOVER;
-  
-  pinMode(2, INPUT);
-}
-
-// Main Program
-void loop() {
-  // Read the control pin...
-  int cmd = pulseIn(2, HIGH);
-
-  if ( cmd < 1200 ) {
-    setAll(dark);
+  if ( ctrlPin < 1200 ) {
+    return CTRL_OFF;
   }
-  else if ( cmd > 1200 and cmd < 1600 ) {
-    playRedStrobe();
+  else if ( ctrlPin > 1200 and ctrlPin < 1600 ) {
+    return CTRL_ON;
   }
   else {
-    // Read the accelerometer...
-    readAccel();
-    
-    // Run the approriate pattern...
-    switch ( mode ) {
+    return CTRL_AUTO;
+  }
+}
+
+void playAuto() {
+  // Read the accelerometer...
+  ledMode = readAccel();
+  
+  // Run the appropriate pattern...
+  switch ( ledMode ) {
     case MODE_DEFAULT:
       playDefault();
       break;
@@ -207,7 +199,35 @@ void loop() {
     case MODE_DESCEND:
       playDescend();
       break;
-    }
   }
+}
+
+// Main Program
+void setup() {
+  // Set the analog reference to external before calling analogRead()...
+  analogReference(EXTERNAL);
   
+  // Set up the control pin...
+  pinMode(CONTROL_PIN, INPUT_PULLUP);
+
+  // Start the pixels on white...
+  pixels.begin();
+  setAll( dimWhite );
+}
+
+void loop() {
+  // Read the control pin...
+  int ctrlPin = readControl();
+
+  switch ( ctrlPin ) {
+    case CTRL_OFF:
+      setAll(dark);
+      break;
+    case CTRL_ON:
+      playRedStrobe();
+      break;
+    case CTRL_AUTO:
+      playAuto();
+      break;
+  }      
 }
