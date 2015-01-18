@@ -134,7 +134,7 @@ void playAuto() {
   // Read the accelerometer...
   int ledMode = readAccel();
   
-  // RunPlay the appropriate pattern...
+  // Play the appropriate pattern...
   switch ( ledMode ) {
     case MODE_DEFAULT:
       playDefault();
@@ -206,12 +206,12 @@ int readAccel() {
 
 // Read the control pin and return the control mode
 int readControl() { 
-  int ctrlPin = pulseIn(CONTROL_PIN, HIGH);
+  int pulse = pulseIn(CONTROL_PIN, HIGH);
 
-  if ( ctrlPin < 1200 ) {
+  if ( pulse < 1200 ) {
     return CTRL_OFF;
   }
-  else if ( ctrlPin > 1200 and ctrlPin < 1600 ) {
+  else if ( pulse > 1200 and pulse < 1600 ) {
     return CTRL_ON;
   }
   else {
@@ -240,9 +240,9 @@ void setup() {
 void loop() {
   
   // Read the control pin...
-  int ctrlPin = readControl();
+  int ctrlMode = readControl();
 
-  switch ( ctrlPin ) {
+  switch ( ctrlMode ) {
     case CTRL_OFF:
       setAll(dark);
       break;
