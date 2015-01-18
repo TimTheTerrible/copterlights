@@ -10,10 +10,7 @@ Since I built the copter using an eight-channel Spektrum AR8000, and the DJI Naz
 
 While shopping for parts I found the Analog Devices ADXL335 accelerometer and though it would be cool to have the lights change based on how the copter was moving.
 
-Running lights can be set to off, on, or auto using a transmitter switch
-* When the switch is in the "0" (off) position, the LEDs will be dark.
-* When the switch is in the "1" (on) position, the LEDs strobe.
-* When the switch is in the "2" (auto) position, the LEDs play the apppropriate sequence based on the output of the accelerometer.
+Running lights can be set to off, on, or auto using a transmitter switch.
 
 == Hardware Requirements
 
@@ -35,20 +32,25 @@ You will also need a three-pin female connecter compatible with your RC receiver
 
 == Hardware Configuration
 
-Wiring the receiver lead to the Teensy
+=== Wiring the receiver lead to the Teensy
 * The PWR lead goes to Vin on the Teensy.
 * The GND lead goes to GND on the Teensy.
 * The SIG lead goes to pin 2 on the Teensy.
 
-Wiring the ADXL335 to the Teensy
+=== Wiring the ADXL335 to the Teensy
 * The Vin pin is connected to Vin on the Teensy.
-* The GND ipn is connected to GND on the Teensy.
+* The GND pin is connected to AGND on the Teensy.
 * The Xout, Yout, and Zout pins are connected to three analog inputs on the Teensy: A0, A1, and A2, repectively.
 * The Vo pin is connected to the AREF pin of the Teensy.
 
-Wiring the NeoPixels to the Teensy
+=== Wiring the NeoPixels to the Teensy
 * Pin 6 on the Teensy is connected to the data in pin of the first NeoPixel.
 * Each further NeoPixel is chained in similar fashion from the previous.
+
+=== Switch Functions
+* When the switch is in the "0" (off) position, the LEDs will be dark.
+* When the switch is in the "1" (on) position, the LEDs strobe.
+* When the switch is in the "2" (auto) position, the LEDs play the apppropriate sequence based on the output of the accelerometer.
 
 == Setup
 * Construct the device according to the schematic.
