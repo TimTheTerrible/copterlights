@@ -67,5 +67,7 @@ The device ends up being pretty noisy. Consider sheilding it in some way. I ende
 The ADXL255 code was mostly cribbed from the example at adafruit.com.
 
 I looked at http://rcarduino.blogspot.com/ with the expectation of finding some example code for reading an RC receiver, but the blog is so soul-crushingly disorganized that I never really found a complete codebase from which to start.
+
 This is a travesty, becuase the blog's author clearly knows what they're doing, but they have the organizational skills of a planarian.
-In the end, I simply used pulseIn() because reading the control pin doesn't need to happen quickly. I may have gotten the idea so use it from http://rcarduino.blogspot.com/ but I can't be sure. ;-)
+
+In the end, I simply used pulseIn() because reading the control pin doesn't need to happen quickly. I may have gotten the idea to use it from http://rcarduino.blogspot.com/ but I can't be sure. ;-)
